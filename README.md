@@ -71,4 +71,9 @@ void loop() {
 }
 
 ```
-
+# Actividad 6
+El primer fragmento configura y abre el puerto serial.
+###
+El segundo fragmento envía un byte a través del puerto serial. Envía datos al microcontrolador.
+###
+El tercer fragmento lee 4 bytes y los imprime en formato hexadecimal. Recibe datos del microcontrolador.
