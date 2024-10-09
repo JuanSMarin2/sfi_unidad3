@@ -77,3 +77,96 @@ El primer fragmento configura y abre el puerto serial.
 El segundo fragmento envía un byte a través del puerto serial. Envía datos al microcontrolador.
 ###
 El tercer fragmento lee 4 bytes y los imprime en formato hexadecimal. Recibe datos del microcontrolador.
+
+# Actividad 7
+Vas a enviar 2 números en punto flotante desde un microcontrolador a una aplicación en Unity usando comunicaciones binarias. Además, inventa una aplicación en Unity que modifique dos dimensiones de un game object usando los valores recibidos.
+
+En Arduino
+```
+float number1 = 1.23;
+float number2 = 4.56;
+
+void setup() {
+  Serial.begin(115200);
+}
+
+void loop() {
+  // Empaquetar los números flotantes en binario
+  byte* data1 = (byte*)&number1; // Convierte el float a un array de bytes
+  byte* data2 = (byte*)&number2;
+
+  // Enviar 4 bytes correspondientes a cada número
+  for (int i = 0; i < 4; i++) {
+    Serial.write(data1[i]);
+  }
+
+  for (int i = 0; i < 4; i++) {
+    Serial.write(data2[i]);
+  }
+
+  delay(1000);  // Envía los datos una vez por segundo
+}
+```
+
+En Unity
+```
+using UnityEngine;
+using System.IO.Ports;
+using System.Threading.Tasks;
+
+public class Mannager : MonoBehaviour
+{
+
+    private SerialPort _serialPort;
+
+    private byte[] buffer;
+    public GameObject targetObject;  // El objeto cuyo tamaño vamos a modificar
+
+    void Start()
+    {
+        _serialPort = new SerialPort();
+        _serialPort.PortName = "COM5";
+        _serialPort.BaudRate = 115200;
+        _serialPort.DtrEnable = true;
+        _serialPort.NewLine = "\n";
+        _serialPort.Open();
+        Debug.Log("Open Serial Port");
+        buffer = new byte[128];
+        _serialPort.ReadTimeout = 1000;  // Tiempo de espera para la lectura
+    }
+
+    void Update()
+    {
+        if (_serialPort.BytesToRead >= 8)  // Verifica si hay al menos 8 bytes disponibles
+        {
+            // Buffer para almacenar los dos números flotantes
+            byte[] buffer = new byte[8];
+            _serialPort.Read(buffer, 0, 8);  // Lee 8 bytes del puerto serial
+
+            // Convertir los primeros 4 bytes a un número en punto flotante
+            float width = System.BitConverter.ToSingle(buffer, 0);
+
+            // Convertir los siguientes 4 bytes a un número en punto flotante
+            float height = System.BitConverter.ToSingle(buffer, 4);
+
+            // Modificar el tamaño del GameObject
+            targetObject.transform.localScale = new Vector3(width, height, targetObject.transform.localScale.z);
+
+            Debug.Log("Width: " + width + ", Height: " + height);
+        }
+    }
+
+    void OnApplicationQuit()
+    {
+        _serialPort.Close();  // Cierra el puerto serial al salir de la aplicación
+    }
+}
+
+```
+
+![image](https://github.com/user-attachments/assets/62648f45-6e48-4228-9105-04e74492513e)
+![image](https://github.com/user-attachments/assets/e2086c75-011f-49cf-abfa-77e5ee34e3f1)
+![image](https://github.com/user-attachments/assets/a45d3f9b-13c6-4fa4-97bb-f9120a2fc8f8)
+
+
+
